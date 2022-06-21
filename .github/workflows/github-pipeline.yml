@@ -1,0 +1,35 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 3.1
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Restore dependencies
+      run: dotnet restore TpCorLib/TpCorLib.sln
+    - name: Build
+      run: dotnet build --no-restore TpCorLib/TpCorLib.sln
+    - name: Test
+      run: dotnet test --no-build TpCorLib/TpCorLib.sln --verbosity normal
+    - name: Publish and Pack
+      run: dotnet pack TpCorLib/TpCorLib.sln  --configuration Release
+    - name: Prep packages
+      run: dotnet nuget add source --username bintuyadavteleperformance --password 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 --store-password-in-clear-text --name github "https://nuget.pkg.github.com/TPSoftwareDev/index.json"
+    - name: push packages
+      run: dotnet nuget push "/home/runner/work/TpCorLib/TpCorLib/TpCorLib/bin/Release/*.nupkg"  --api-key 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 --source "github"
+
+
+      

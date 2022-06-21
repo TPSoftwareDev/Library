@@ -1,0 +1,26 @@
+name: build TpCorLib
+
+on:
+  push:
+    branches: [ "master" ]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['3.0', '3.1.x', '5.0.x' ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run:  dotnet restore TpCorLib/TpCorLib.sln
+      - name: Build
+        run: dotnet build --no-restore TpCorLib/TpCorLib.sln --configuration Release
+      - name: Test
+        run: dotnet test --no-build TpCorLib/TpCorLib.sln --test-adapter-path:. --no-restore --verbosity normal
+    

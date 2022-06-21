@@ -1,0 +1,101 @@
+# This is a sample build configuration for .NET Core. Edited to create and publish
+# the assembly as a NuGet package.
+#
+# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: mcr.microsoft.com/dotnet/core/sdk:3.1
+definitions:
+  steps:
+    - step: &build-test
+        name: Build and Test
+        caches:
+          - dotnetcore
+        script:
+          - /bin/bash installcredprovider.sh
+          - export CONFIGURATION=Release
+          - REPORTS_PATH=./test-reports/build_${BITBUCKET_BUILD_NUMBER}
+          - dotnet nuget add source ${ARTIFACTS_PATH} --name "Azure Teleperformance"
+          - dotnet restore TpCorLib/TpCorLib.sln
+          - dotnet build --no-restore TpCorLib/TpCorLib.sln --configuration ${CONFIGURATION}
+          - dotnet test --no-build TpCorLib/TpCorLib.sln --test-adapter-path:.
+
+    - step: &push-to-package-archive
+        name: Push to Package Archive
+        script:
+          - /bin/bash installcredprovider.sh
+          - export RELEASES_DIR="./releases"
+          - export NUPKG_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${BITBUCKET_BUILD_NUMBER}
+          - dotnet pack TpCorLib/TpCorLib.sln --output ${RELEASES_DIR} --configuration Release -p:Version=${NUPKG_VERSION}
+          - dotnet nuget push ${RELEASES_DIR}/TpCorLib.${NUPKG_VERSION}.nupkg --api-key "not used" --source ${ARTIFACTS_PATH}
+
+    - step: &security-scan
+        name: Security Scan
+        script:
+          - pipe: atlassian/git-secrets-scan:0.4.3
+
+pipelines:
+  pull-requests:
+    '**':
+    - parallel:
+      - step:
+          <<: *build-test
+          name: Pull Request Build/Test
+      - step: *security-scan
+  branches:
+    master:
+    - parallel:
+      - step:
+          <<: *build-test
+          name: Merge to Master Build/Test
+      - step: *security-scan
+    - step: *push-to-package-archive
+
+  custom:
+    manual-build-test:
+      - step:
+          <<: *build-test
+          name: Manual Build/Test
+
+#  default:
+#    - step:
+#        caches:
+#          - dotnetcore
+#        script: # Modify the commands below to build your repository.
+#          - /bin/bash installcredprovider.sh
+#          - export CONFIGURATION=Release
+#          - REPORTS_PATH=./test-reports/build_${BITBUCKET_BUILD_NUMBER}
+#          - dotnet restore ${SOLUTION_NAME}/${SOLUTION_NAME}.sln
+#          - dotnet build --no-restore ${SOLUTION_NAME}/${SOLUTION_NAME}.sln --configuration ${CONFIGURATION}
+#          - dotnet test --no-build ${SOLUTION_NAME}/${SOLUTION_NAME}.sln --test-adapter-path:. 
+
+#  branches:
+#    master:
+#    - parallel:
+#      - step:
+#          name: 'Build and Test Master'
+#          caches:
+#            - dotnetcore
+#          script:
+#            - echo Building Master
+#            - /bin/bash installcredprovider.sh
+#            - export CONFIGURATION=Release
+#            - REPORTS_PATH=./test-reports/build_${BITBUCKET_BUILD_NUMBER}
+#            - dotnet restore ${SOLUTION_NAME}/${SOLUTION_NAME}.sln
+#            - dotnet build --no-restore ${SOLUTION_NAME}/${SOLUTION_NAME}.sln --configuration ${CONFIGURATION}
+#            - dotnet test --no-build ${SOLUTION_NAME}/${SOLUTION_NAME}.sln --test-adapter-path:. 
+#      - step:
+#          name: 'Security scan'
+#          script:
+              # Run a security scan for sensitive data.
+              # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+#            - pipe: atlassian/git-secrets-scan:0.4.3
+#    - step:
+#        name: 'Push Package to Private Repo'
+#        script:
+#          - /bin/bash installcredprovider.sh
+#          - export RELEASES_DIR="./releases"
+#          - export NUPKG_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${BITBUCKET_BUILD_NUMBER}
+#          - dotnet pack ${SOLUTION_NAME}/${SOLUTION_NAME}.sln --output ${RELEASES_DIR} --configuration Release -p:Version=${NUPKG_VERSION}
+#          - dotnet nuget push ${RELEASES_DIR}/${SOLUTION_NAME}.${NUPKG_VERSION}.nupkg --api-key "hi mom" --source ${ARTIFACTS_PATH}
