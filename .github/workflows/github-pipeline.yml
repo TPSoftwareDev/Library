@@ -27,7 +27,7 @@ jobs:
     - name: Publish and Pack
       run: dotnet pack TpCorLib/TpCorLib.sln  --configuration Release
     - name: Prep packages
-      run: dotnet nuget add source --username bintuyadavteleperformance --password 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 --store-password-in-clear-text --name github "https://nuget.pkg.github.com/TPSoftwareDev/index.json"
+      run: dotnet nuget add source --username bintuyadavteleperformance --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/TPSoftwareDev/index.json"
     # - name: install gpr
     #   run: dotnet tool install gpr -g
     - name: push packages
