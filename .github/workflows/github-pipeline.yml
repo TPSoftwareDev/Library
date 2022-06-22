@@ -29,7 +29,5 @@ jobs:
     - name: Prep packages
       run: dotnet nuget add source --username bintuyadavteleperformance --password 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 --store-password-in-clear-text --name github "https://github.com/TPSoftwareDev/index.json"
     - name: push packages
-      run: dotnet nuget push "/home/runner/work/Library/Library/TpCorLib/bin/Release/*.nupkg"   --password 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  --source "github"
-
-
+      run: dotnet nuget push "/home/runner/work/Library/Library/TpCorLib/bin/Release/*.nupkg"   --api-key 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  --source "github"
       
