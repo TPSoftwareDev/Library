@@ -31,5 +31,5 @@ jobs:
     # - name: install gpr
     #   run: dotnet tool install gpr -g
     - name: push packages
-      run: gpr push "/home/runner/work/Library/Library/TpCorLib/bin/Release/*.nupkg"   -k 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  --source "https://github.com/TPSoftwareDev/Library/index.json"
+      run: dotnet nuget push "/home/runner/work/Library/Library/TpCorLib/bin/Release/*.nupkg"   -k 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  --source "https://github.com/TPSoftwareDev/Library/index.json"
 
