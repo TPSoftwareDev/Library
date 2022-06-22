@@ -7,7 +7,7 @@
     <Authors>TpCorLib</Authors>
     <Company>Teleperformance</Company>
     <PackageDescription>This package adds an TpCorLib!</PackageDescription>
-    <RepositoryUrl>https://nuget.pkg.github.com/TPSoftwareDev/TpCorLib/index.json</RepositoryUrl>
+    <RepositoryUrl>https://github.com/TPSoftwareDev/Library/index.json</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
